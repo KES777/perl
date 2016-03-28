@@ -828,6 +828,28 @@ sub _calc_trace_wrapper
     );
 }
 
+# Test that user's pragma applied to `x expr`
+{
+    my $wrapper = DebugWrap->new(
+        {
+            prog => '../lib/perl5db/t/apply_users_pragma_when_eval',
+            include_t => 1,
+            cmds =>
+            [
+                'b 9',
+                'c',
+                'print "B: ", $l + $r, "\n";',
+                'q',
+            ],
+        },
+    );
+
+    $wrapper->output_like(
+        qr/^A: 4.6\nB: 4\n$/,
+        "Pragma is not applyed to evaled expression."
+    );
+}
+
 # Tests for mutating @_
 {
     my $wrapper = DebugWrap->new(
