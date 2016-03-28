@@ -708,8 +708,9 @@ sub _calc_usercontext {
     # Cancel strict completely for the evaluated code, so the code
     # the user evaluates won't be affected by it. (Shlomi Fish)
     return
-      'BEGIN{ ( $^H, ${^WARNING_BITS} ) =  @DB::saved[7,8]; }'
-    .  '($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;'
+      'BEGIN{ ( $^H, ${^WARNING_BITS} ) =  @DB::saved[7,8];'
+    . ' %^H =  %{ @DB::saved[9] } if defined @DB::saved[9]; }'
+    . '($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;'
     . "package $package;";    # this won't let them modify, alas
 }
 
@@ -6163,9 +6164,9 @@ sub save {
     # separator, input record separator, output record separator and
     # the warning setting.
     @saved = ( $@, $!, $^E, $,, $/, $\, $^W );
-    my @caller =  (caller 1)[3,8,9];
+    my @caller =  (caller 1)[3,8..10];
     if( $caller[0] eq 'DB::DB' ) {
-      @saved[7,8] =  @caller[1,2];
+      @saved[7..9] =  @caller[1..3];
     }
 
 
