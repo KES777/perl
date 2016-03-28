@@ -707,7 +707,9 @@ sub _calc_usercontext {
 
     # Cancel strict completely for the evaluated code, so the code
     # the user evaluates won't be affected by it. (Shlomi Fish)
-    return 'no strict; ($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;'
+    return
+      'BEGIN{ ( $^H, ${^WARNING_BITS} ) =  @DB::saved[7,8]; }'
+    .  '($@, $!, $^E, $,, $/, $\, $^W) = @DB::saved;'
     . "package $package;";    # this won't let them modify, alas
 }
 
@@ -748,7 +750,7 @@ sub eval {
 
     # Since we're only saving $@, we only have to localize the array element
     # that it will be stored in.
-    local $saved[0];    # Preserve the old value of $@
+    local $saved[0,7,8];    # Preserve the old value of $@ and $^H, ${^WARNING_BITS}
     eval { &DB::save };
 
     # Now see whether we need to report an error back to the user.
@@ -6160,7 +6162,7 @@ sub save {
     # Save eval failure, command failure, extended OS error, output field
     # separator, input record separator, output record separator and
     # the warning setting.
-    @saved = ( $@, $!, $^E, $,, $/, $\, $^W );
+    @saved = ( $@, $!, $^E, $,, $/, $\, $^W, (caller 1)[8,9] );
 
     $,  = "";      # output field separator is null string
     $/  = "\n";    # input record separator is newline
