@@ -750,7 +750,7 @@ sub eval {
 
     # Since we're only saving $@, we only have to localize the array element
     # that it will be stored in.
-    local $saved[0,7,8];    # Preserve the old value of $@ and $^H, ${^WARNING_BITS}
+    local $saved[0];    # Preserve the old value of $@
     eval { &DB::save };
 
     # Now see whether we need to report an error back to the user.
@@ -6162,7 +6162,12 @@ sub save {
     # Save eval failure, command failure, extended OS error, output field
     # separator, input record separator, output record separator and
     # the warning setting.
-    @saved = ( $@, $!, $^E, $,, $/, $\, $^W, (caller 1)[8,9] );
+    @saved = ( $@, $!, $^E, $,, $/, $\, $^W );
+    my @caller =  (caller 1)[3,8,9];
+    if( $caller[0] eq 'DB::DB' ) {
+      @saved[7,8] =  @caller[1,2];
+    }
+
 
     $,  = "";      # output field separator is null string
     $/  = "\n";    # input record separator is newline
