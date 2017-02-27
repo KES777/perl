@@ -105,6 +105,8 @@ recursive, but it's recursive on basic blocks, not on tree nodes.
 #include "feature.h"
 #include "regcomp.h"
 
+#include "execinfo.h"
+
 #define CALL_PEEP(o) PL_peepp(aTHX_ o)
 #define CALL_RPEEP(o) PL_rpeepp(aTHX_ o)
 #define CALL_OPFREEHOOK(o) if (PL_opfreehook) PL_opfreehook(aTHX_ o)
@@ -4772,6 +4774,21 @@ of C<op_private>.
 =cut
 */
 
+static void my_trace( int point, OP *op ) {
+    void* callstack[128];
+    int i, frames;
+    char** strs;
+
+  Perl_ck_warner_d(aTHX_ packWARN(WARN_DEPRECATED), "STACK %d TYPE \%d\n", point, op->op_type );
+  frames = backtrace(callstack, 128);
+  strs = backtrace_symbols(callstack, frames);
+  for (i = 0; i < frames; ++i) {
+      Perl_ck_warner_d(aTHX_ packWARN(WARN_DEPRECATED),
+       "%s\n", strs[i]);
+  }
+
+}
+
 OP *
 Perl_newOP(pTHX_ I32 type, I32 flags)
 {
@@ -4798,6 +4815,9 @@ Perl_newOP(pTHX_ I32 type, I32 flags)
 	scalar(o);
     if (PL_opargs[type] & OA_TARGET)
 	o->op_targ = pad_alloc(type, SVs_PADTMP);
+
+  my_trace( 1, o );
+
     return CHECKOP(type, o);
 }
 
@@ -9251,6 +9271,8 @@ Perl_newSVREF(pTHX_ OP *o)
 
     PERL_ARGS_ASSERT_NEWSVREF;
 
+    my_trace( 2, o );
+
     if (o->op_type == OP_PADANY) {
         OpTYPE_set(o, OP_PADSV);
         scalar(o);
@@ -10441,6 +10463,16 @@ OP *
 Perl_ck_null(pTHX_ OP *o)
 {
     PERL_ARGS_ASSERT_CK_NULL;
+    PERL_UNUSED_CONTEXT;
+    return o;
+}
+
+OP *
+Perl_ck_my(pTHX_ OP *o)
+{
+    my_trace( 3, o );
+
+    PERL_ARGS_ASSERT_CK_MY;
     PERL_UNUSED_CONTEXT;
     return o;
 }

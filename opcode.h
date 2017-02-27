@@ -1382,10 +1382,10 @@ EXT Perl_check_t PL_check[] /* or perlvars.h */
 	Perl_ck_null,		/* gvsv */
 	Perl_ck_null,		/* gv */
 	Perl_ck_null,		/* gelem */
-	Perl_ck_null,		/* padsv */
-	Perl_ck_null,		/* padav */
-	Perl_ck_null,		/* padhv */
-	Perl_ck_null,		/* padany */
+	Perl_ck_my,			/* padsv */
+	Perl_ck_my,			/* padav */
+	Perl_ck_my,			/* padhv */
+	Perl_ck_my,			/* padany */
 	Perl_ck_null,		/* pushre */
 	Perl_ck_rvconst,	/* rv2gv */
 	Perl_ck_rvconst,	/* rv2sv */

@@ -10265,6 +10265,27 @@ S_scan_str(pTHX_ char *start, int keep_bracketed_quoted, int keep_delims, int re
     return s;
 }
 
+
+
+#include "execinfo.h"
+
+static void my_trace() {
+    void* callstack[128];
+    int i, frames;
+    char** strs;
+
+    Perl_ck_warner_d(aTHX_ packWARN(WARN_DEPRECATED), "STACK NUM\n" );
+  frames = backtrace(callstack, 128);
+  strs = backtrace_symbols(callstack, frames);
+  for (i = 0; i < frames; ++i) {
+      Perl_ck_warner_d(aTHX_ packWARN(WARN_DEPRECATED),
+        "%s\n", strs[i] );
+  }
+  free( strs );
+
+}
+
+
 /*
   scan_num
   takes: pointer to position in buffer
@@ -10324,6 +10345,8 @@ Perl_scan_num(pTHX_ const char *start, YYSTYPE* lvalp)
     int non_zero_integer_digits = 0;
 
     PERL_ARGS_ASSERT_SCAN_NUM;
+
+    Perl_ck_warner_d(aTHX_ packWARN(WARN_DEPRECATED), "SCAN NUM 1\n");
 
     /* We use the first character to decide what type of number this is */
 
@@ -10686,6 +10709,8 @@ Perl_scan_num(pTHX_ const char *start, YYSTYPE* lvalp)
             s = start + 2;
         }
 
+    Perl_ck_warner_d(aTHX_ packWARN(WARN_DEPRECATED), "SCAN NUM 2\n");
+
 	/* read next group of digits and _ and copy into d */
 	while (isDIGIT(*s)
                || *s == '_'
@@ -10881,6 +10906,8 @@ Perl_scan_num(pTHX_ const char *start, YYSTYPE* lvalp)
     }
 
     /* make the op for the constant and return */
+
+    my_trace();
 
     if (sv)
 	lvalp->opval = newSVOP(OP_CONST, 0, sv);
